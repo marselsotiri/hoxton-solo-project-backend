@@ -80,6 +80,48 @@ app.get('/validate', async (req, res) => {
     }
 })
 
+app.post('/players', async (req, res) => {
+
+    const token = req.headers.authorization || ''
+    const { fullName, positon, team } = req.body
+
+    try {
+        const user = await getUserFromToken(token)
+
+        const player = await prisma.player.create({
+            //@ts-ignore
+            data: { fullName: fullName, positon: positon, team: team, userId: user.id },
+            include: { user: true }
+        })
+        res.send(player)
+    } catch (err) {
+        // @ts-ignore
+        res.status(400).send({ error: err.message })
+    }
+
+})
+
+app.patch('/player/:id', async (req, res) => {
+    const token = req.headers.authorization || ''
+    const id = Number(req.params.id)
+    const { fullName, positon, team } = req.body
+
+    try {
+        const user = await getUserFromToken(token)
+
+        const updatedPlayer = await prisma.player.update({
+            // @ts-ignore
+            where: { id: id },
+            data: { fullName: fullName, positon: positon, team: team },
+            include: { user: true }
+        })
+        res.send(updatedPlayer)
+    } catch (err) {
+        // @ts-ignore
+        res.status(400).send({ error: err.message })
+    }
+})
+
 
 
 
