@@ -32,6 +32,35 @@ async function getUserFromToken(token: string) {
     return user
 }
 
+
+app.get('/players', async (req, res) => {
+    const token = req.headers.authorization || ''
+    try {
+        const user = await getUserFromToken(token)
+
+        const players = await prisma.player.findMany()
+        res.send(players)
+    } catch (err) {
+        // @ts-ignore
+        res.status(400).send({ error: err.message })
+    }
+})
+
+app.get('/players/:id', async (req, res) => {
+    const token = req.headers.authorization || ''
+
+    const id = Number(req.params.id)
+    try {
+        const user = await getUserFromToken(token)
+
+        const players = await prisma.player.findUnique({ where: { id: id } })
+        res.send(players)
+    } catch (err) {
+        // @ts-ignore
+        res.status(400).send({ error: err.message })
+    }
+})
+
 app.post('/sign-up', async (req, res) => {
     const { email, password, name } = req.body
 
@@ -122,6 +151,30 @@ app.patch('/player/:id', async (req, res) => {
     }
 })
 
+app.delete('/players/:id', async (req, res) => {
+    const token = req.headers.authorization || ''
+    const id = Number(req.params.id)
+
+    try {
+        const user = await getUserFromToken(token)
+
+        const player = await prisma.player.findUnique({ where: { id: id } })
+
+        if (player?.userId === user?.id) {
+            // if it does: delete it
+            await prisma.player.delete({ where: { id: id } })
+            res.send({ message: 'Photo successfully deleted.' })
+        } else {
+            // if it does not: tell them they are not authorised
+            res
+                .status(401)
+                .send({ error: 'You are not authorised to do delete this photo.' })
+        }
+    } catch (err) {
+        // @ts-ignore
+        res.status(400).send({ error: err.message })
+    }
+})
 
 
 
