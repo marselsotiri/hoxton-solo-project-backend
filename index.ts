@@ -38,7 +38,7 @@ app.get('/players', async (req, res) => {
     try {
         const user = await getUserFromToken(token)
 
-        const players = await prisma.player.findMany()
+        const players = await prisma.player.findMany({ where: { userId: user?.id } })
         res.send(players)
     } catch (err) {
         // @ts-ignore
@@ -112,17 +112,18 @@ app.get('/validate', async (req, res) => {
 app.post('/players', async (req, res) => {
 
     const token = req.headers.authorization || ''
-    const { fullName, positon, team } = req.body
+    const { fullName, position, team, status } = req.body
 
     try {
         const user = await getUserFromToken(token)
 
         const player = await prisma.player.create({
             //@ts-ignore
-            data: { fullName: fullName, positon: positon, team: team, userId: user.id },
+            data: { fullName: fullName, position: position, team: team, status: status, userId: user.id },
             include: { user: true }
         })
-        res.send(player)
+        const players = await prisma.player.findMany({ where: { userId: user?.id } })
+        res.send(players)
     } catch (err) {
         // @ts-ignore
         res.status(400).send({ error: err.message })
@@ -133,7 +134,7 @@ app.post('/players', async (req, res) => {
 app.patch('/player/:id', async (req, res) => {
     const token = req.headers.authorization || ''
     const id = Number(req.params.id)
-    const { fullName, positon, team } = req.body
+    const { fullName, position, team, status } = req.body
 
     try {
         const user = await getUserFromToken(token)
@@ -141,7 +142,7 @@ app.patch('/player/:id', async (req, res) => {
         const updatedPlayer = await prisma.player.update({
             // @ts-ignore
             where: { id: id },
-            data: { fullName: fullName, positon: positon, team: team },
+            data: { fullName: fullName, position: position, team: team, status: status },
             include: { user: true }
         })
         res.send(updatedPlayer)
@@ -163,7 +164,8 @@ app.delete('/players/:id', async (req, res) => {
         if (player?.userId === user?.id) {
             // if it does: delete it
             await prisma.player.delete({ where: { id: id } })
-            res.send({ message: 'Photo successfully deleted.' })
+            const players = await prisma.player.findMany({ where: { userId: user?.id } })
+            res.send(players)
         } else {
             // if it does not: tell them they are not authorised
             res

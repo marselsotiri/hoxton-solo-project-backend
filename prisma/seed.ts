@@ -6,13 +6,13 @@ const prisma = new PrismaClient()
 const players: Prisma.PlayerCreateInput[] = [
     {
         fullName: "Marsel Sotiri",
-        positon: "SHT",
+        position: "SHT",
         team: "Flamurtari",
         user: { connect: { id: 1 } }
     },
     {
         fullName: "Armelind Sotiri",
-        positon: "SF",
+        position: "SF",
         team: "Flamurtari",
         user: { connect: { id: 1 } }
     }
